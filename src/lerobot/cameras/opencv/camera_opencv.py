@@ -155,11 +155,18 @@ class OpenCVCamera(Camera):
         if self.is_connected:
             raise DeviceAlreadyConnectedError(f"{self} is already connected.")
 
+        backends = [cv2.CAP_ANY, cv2.CAP_DSHOW, cv2.CAP_MSMF, cv2.CAP_V4L2]
         # Use 1 thread for OpenCV operations to avoid potential conflicts or
         # blocking in multi-threaded applications, especially during data collection.
         cv2.setNumThreads(1)
 
-        self.videocapture = cv2.VideoCapture(self.index_or_path, self.backend)
+        for backend in backends:
+            self.videocapture = cv2.VideoCapture(self.index_or_path, backend)
+            if self.videocapture.isOpened():
+                print(f"Connected to {self} with backend {backend}")
+                break
+            else:
+                print(f"Failed to open {self} with backend {backend}")
 
         if not self.videocapture.isOpened():
             self.videocapture.release()
